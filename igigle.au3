@@ -20,11 +20,14 @@ $zipini = IniRead("igigle.ini", "settings", "zip", "47150")
 $latini = IniRead("igigle.ini", "settings", "lat", "38.22000000")
 $longini = IniRead("igigle.ini", "settings", "long", "-85.75000000")
 $varini = IniRead("igigle.ini", "settings", "var", "0.02")
+$slicesini = IniRead("igigle.ini", "settings", "slices", "2")
 $founddateini = IniRead("igigle.ini", "settings", "founddate", "20050101000000")
+$slicesini = IniRead("igigle.ini", "settings", "slices", "2")
+$startatini = IniRead("igigle.ini", "settings", "startat", "1")
 $userini = IniRead("igigle.ini", "settings", "user", "Irongeek")
 $passini = IniRead("igigle.ini", "settings", "pass", "")
-$VersionString = "IG WiGLE Client 0.95"
-$MainForm = GUICreate($VersionString, 222, 450, 307, 290)
+$VersionString = "IG WiGLE Client 0.96"
+$MainForm = GUICreate($VersionString, 222, 550, 307, 290)
 GUISetFont(7, 400, "Times New Roman")
 GUISetBkColor(0xA0FFA0)
 GUICtrlCreateLabel("ZIP:", 26, 16, 24, 17)
@@ -45,23 +48,29 @@ GUICtrlCreateLabel("Date:", 22, 115, 60, 17)
 $FoundDate = GUICtrlCreateInput($founddateini, 60, 112, 129, 21, $WS_EX_CLIENTEDGE)
 GUICtrlCreateLabel("YYYYMMDDHHMMSS", 60, 135, 120, 17)
 
-GUICtrlCreateLabel("WiGLE User:", 0, 172, 70, 17)
-$UserTXT = GUICtrlCreateInput($userini, 63, 172, 129, 21, -1, $WS_EX_CLIENTEDGE)
+GUICtrlCreateLabel("Slices:", 16, 145, 37, 17)
+$SlicesTXT = GUICtrlCreateInput($slicesini, 60, 145, 129, 21, -1, $WS_EX_CLIENTEDGE)
 
-GUICtrlCreateLabel("WiGLE Pass:", 0, 196, 70, 17)
-$PassTXT = GUICtrlCreateInput($passini, 63, 196, 129, 21, $ES_PASSWORD, $WS_EX_CLIENTEDGE)
+GUICtrlCreateLabel("Start at:", 16, 169, 37, 17)
+$StartatTXT = GUICtrlCreateInput($startatini, 60, 169, 129, 21, -1, $WS_EX_CLIENTEDGE)
 
-$OnlyMyPointsCHK = GUICtrlCreateCheckbox("Show Only My Points", 64, 220, 161, 17)
+GUICtrlCreateLabel("WiGLE User:", 0, 272, 70, 17)
+$UserTXT = GUICtrlCreateInput($userini, 63, 272, 129, 21, -1, $WS_EX_CLIENTEDGE)
 
-GUICtrlCreateLabel("Make KML File By Which Method?", 32, 237, 169, 17)
-$ByZipBut = GUICtrlCreateButton("By ZIP", 8, 255, 81, 25)
-$BylatLongBUT = GUICtrlCreateButton("By Lat/Long", 128, 255, 81, 25)
+GUICtrlCreateLabel("WiGLE Pass:", 0, 296, 70, 17)
+$PassTXT = GUICtrlCreateInput($passini, 63, 296, 129, 21, $ES_PASSWORD, $WS_EX_CLIENTEDGE)
+
+$OnlyMyPointsCHK = GUICtrlCreateCheckbox("Show Only My Points", 64, 320, 161, 17)
+
+GUICtrlCreateLabel("Make KML File By Which Method?", 32, 337, 169, 17)
+$ByZipBut = GUICtrlCreateButton("By ZIP", 8, 355, 81, 25)
+$BylatLongBUT = GUICtrlCreateButton("By Lat/Long", 128, 355, 81, 25)
 ;$BySSIDStalkBUT = GUICtrlCreateButton("SSID Stalk", 65, 390, 81, 25)
-$iglink = GUICtrlCreateButton("http://irongeek.com", 0, 420, 222, 22)
+$iglink = GUICtrlCreateButton("http://irongeek.com", 0, 520, 222, 22)
 GUICtrlSetFont($iglink, 12, 400, 4, "MS Sans Serif")
 GUICtrlSetColor($iglink, 0x008000)
 
-$status = GUICtrlCreateLabel($VersionString & @CRLF & "Choose what you want to do.", 32, 285, 150, 85)
+$status = GUICtrlCreateLabel($VersionString & @CRLF & "Choose what you want to do.", 32, 385, 150, 85)
 
 GUISetState(@SW_SHOW)
 
@@ -71,6 +80,7 @@ While 1
 	$msg = GUIGetMsg()
 	Select
 		Case $msg = $GUI_EVENT_CLOSE
+			SaveSettings()
 			ExitLoop
 		Case $msg = $ByZipBut
 			$zip = StringStripWS(GUICtrlRead($ZIPTXT), 8)
@@ -99,15 +109,72 @@ While 1
 		Case $msg = $BylatLongBUT
 			$lat = StringStripWS(GUICtrlRead($LatTXT), 8)
 			$long = StringStripWS(GUICtrlRead($LongTXT), 8)
+			$slices = StringStripWS(GUICtrlRead($SlicesTXT), 8) ; e.g. 2 means we have to download 4 pieces
+			$startat = StringStripWS(GUICtrlRead($StartatTXT), 8)
+			
 			$var = StringStripWS(GUICtrlRead($VarTXT), 8)
 			$lastupdt = StringStripWS(GUICtrlRead($FoundDate), 8)
 			$user = StringStripWS(GUICtrlRead($UserTXT), 8)
 			$pass = StringStripWS(GUICtrlRead($PassTXT), 8)
-			$fn = $lat & $long
-			If GUICtrlRead($OnlyMyPointsCHK) = 1 Then $extraprams = "&onlymine=true"
-			$qurl = "http://wigle.net/gpsopen/gps/GPSDB/confirmquery/?latrange1=" & $lat + $var & "&latrange2=" & $lat - $var & "&longrange1=" & $long + $var & "&longrange2=" & $long - $var & "&lastupdt=" & $lastupdt & "&credential_0=" & $user & "&credential_1=" & $pass & $extraprams & "&simple=true"
-			ConsoleWrite(@CRLF & $qurl)
-			MakeWiGLEQuery($fn, $qurl)
+			
+			$top = $lat + $var
+			$bottom = $lat - $var
+			$left = $long - $var
+			$right = $long + $var
+			ConsoleWrite(@CRLF & "$left: " & $left)
+			ConsoleWrite(@CRLF & "$right: " & $right)
+			ConsoleWrite(@CRLF & "$top: " & $top)
+			ConsoleWrite(@CRLF & "$bottom: " & $bottom)
+			
+			$stepSize = ( $top - $bottom ) / $slices
+			ConsoleWrite(@CRLF & "stepSize: " & $stepSize)
+			
+			$progress = 0
+			$sleepLength = 10000
+			$sleepCycle = 500
+			$success =  True
+			For $horStep = 0 To $slices - 1
+				If $success == False Then
+					ExitLoop
+				EndIf
+					
+				$currentLeft = $left + ( $stepSize * $horStep )
+				$currentRight = $left + ( $stepSize * ( $horStep + 1 ) )
+				For $vertStep = 0 To $slices - 1
+					
+					GUICtrlSetData($StartatTXT, $progress)
+					
+					If $startat > $progress Then
+						$progress = $progress + 1
+						ExitLoop
+					EndIf
+					
+					$currentTop = $top - ( $stepSize * $vertStep )
+					$currentBottom = $top - ( $stepSize * ( $vertStep + 1 ) )
+			
+					$fn = $lat & "_" & $long & "_" & $horStep & "_" & $vertStep
+					If GUICtrlRead($OnlyMyPointsCHK) = 1 Then $extraprams = "&onlymine=true"
+					$qurl = "http://wigle.net/gpsopen/gps/GPSDB/confirmquery/?latrange1=" & $currentTop & "&latrange2=" & $currentBottom & "&longrange1=" & $currentRight & "&longrange2=" & $currentLeft & "&lastupdt=" & $lastupdt & "&credential_0=" & $user & "&credential_1=" & $pass & $extraprams & "&simple=true"
+					ConsoleWrite(@CRLF & $qurl)
+					$success = MakeWiGLEQuery($fn, $qurl)
+					
+					If $success == False Then
+						GUICtrlSetData($StartatTXT, $progress)
+						ExitLoop
+					EndIf
+					
+					$progress = $progress + 1
+					GUICtrlSetData($StartatTXT, $progress)
+					
+					If Mod($progress, $sleepCycle) = 0 Then
+						GUICtrlSetData($status, "Sleeping " & $sleepLength & " ms...")
+						Sleep ( $sleepLength )
+					EndIf
+					
+				Next
+			Next
+			
+			GUICtrlSetData($StartatTXT, $progress)
 			SaveSettings()
 #cs
 		Case $msg = $BySSIDStalkBUT
@@ -140,6 +207,9 @@ Func SaveSettings()
 	IniWrite("igigle.ini", "settings", "founddate", GUICtrlRead($FoundDate))
 	IniWrite("igigle.ini", "settings", "user", GUICtrlRead($UserTXT))
 	IniWrite("igigle.ini", "settings", "pass", GUICtrlRead($PassTXT))
+	IniWrite("igigle.ini", "settings", "slices", GUICtrlRead($SlicesTXT))
+	IniWrite("igigle.ini", "settings", "startat", GUICtrlRead($StartatTXT))
+	
 
 EndFunc   ;==>SaveSettings
 
@@ -149,11 +219,14 @@ Func MakeWiGLEQuery($fn, $qurl)
 		If ValidFile($fn & ".txt") Then
 			MakeKMLFile($fn & ".txt", $fn & ".kml")
 			GUICtrlSetData($status, "Done. Open " & $fn & ".kml in Google Earth")
+			Return True
 		Else
 			GUICtrlSetData($status, "Bad Input File! Check that your WiGLE user name and password are correct, and that the WiGLE web server is up.")
+			Return False
 		EndIf
 	Else
 		GUICtrlSetData($status, "Could not get data from server. Check that your WiGLE user name and password are correct, and that the WiGLE web server is up.")
+		Return False
 	EndIf
 EndFunc   ;==>MakeWiGLEQuery
 
