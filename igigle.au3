@@ -123,10 +123,10 @@ While 1
 			$bottom = $lat - $var
 			$left = $long - $var
 			$right = $long + $var
-			ConsoleWrite(@CRLF & "$left: " & $left)
-			ConsoleWrite(@CRLF & "$right: " & $right)
-			ConsoleWrite(@CRLF & "$top: " & $top)
-			ConsoleWrite(@CRLF & "$bottom: " & $bottom)
+			;ConsoleWrite(@CRLF & "$left: " & $left)
+			;ConsoleWrite(@CRLF & "$right: " & $right)
+			;ConsoleWrite(@CRLF & "$top: " & $top)
+			;ConsoleWrite(@CRLF & "$bottom: " & $bottom)
 
 			$stepSize = ( $top - $bottom ) / $slices
 			ConsoleWrite(@CRLF & "stepSize: " & $stepSize)
@@ -157,9 +157,14 @@ While 1
 					$currentTop = $top - ( $stepSize * $vertStep )
 					$currentBottom = $top - ( $stepSize * ( $vertStep + 1 ) )
 
-					$fn = $lat & "_" & $long & "_" & $horStep & "_" & $vertStep
+					$fn = $lat & "_" & $long & "_" & $var & "_" & $slices & "_" & $horStep & "_" & $vertStep
+
+					if FileExists ( $fn  ) Then
+						ConsoleWrite(@CRLF & "Skipping " & $fn & " because already exists")
+						ContinueLoop
+					EndIf
 					If GUICtrlRead($OnlyMyPointsCHK) = 1 Then $extraprams = "&onlymine=true"
-					$qurl = "http://wigle.net/gpsopen/gps/GPSDB/confirmquery/?latrange1=" & $currentTop & "&latrange2=" & $currentBottom & "&longrange1=" & $currentRight & "&longrange2=" & $currentLeft & "&lastupdt=" & $lastupdt & "&credential_0=" & $user & "&credential_1=" & $pass & $extraprams & "&simple=true"
+					$qurl = "http://wigle.net/gpsopen/gps/GPSDB/confirmquery/?latrange1=" & Round($currentTop,6) & "&latrange2=" & Round($currentBottom,6) & "&longrange1=" & Round($currentRight,6) & "&longrange2=" & Round($currentLeft,6) & "&lastupdt=" & $lastupdt & "&credential_0=" & $user & "&credential_1=" & $pass & $extraprams & "&simple=true"
 					ConsoleWrite(@CRLF & $qurl)
 					$success = MakeWiGLEQuery($fn, $qurl)
 
