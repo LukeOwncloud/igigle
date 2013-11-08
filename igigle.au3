@@ -159,7 +159,7 @@ While 1
 
 					$fn = $lat & "_" & $long & "_" & $var & "_" & $slices & "_" & $horStep & "_" & $vertStep
 
-					if FileExists ( $fn  ) Then
+					if FileExists ( $fn & ".kml" ) Then
 						ConsoleWrite(@CRLF & "Skipping " & $fn & " because already exists")
 						ContinueLoop
 					EndIf
