@@ -149,7 +149,7 @@ While 1
 
 					If $startat > $progress Then
 						$progress = $progress + 1
-						ExitLoop
+						ContinueLoop
 					EndIf
 
 					$doneAnything = True
