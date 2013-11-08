@@ -160,7 +160,7 @@ While 1
 					$fn = $lat & "_" & $long & "_" & $var & "_" & $slices & "_" & $horStep & "_" & $vertStep
 
 					if FileExists ( $fn & ".kml" ) Then
-						ConsoleWrite(@CRLF & "Skipping " & $fn & " because already exists")
+						ConsoleWrite(@CRLF & "Skipping " & $fn & ".kml because already exists")
 						ContinueLoop
 					EndIf
 					If GUICtrlRead($OnlyMyPointsCHK) = 1 Then $extraprams = "&onlymine=true"
