@@ -23,7 +23,7 @@ $varini = IniRead("igigle.ini", "settings", "var", "0.02")
 $slicesini = IniRead("igigle.ini", "settings", "slices", "2")
 $founddateini = IniRead("igigle.ini", "settings", "founddate", "20050101000000")
 $slicesini = IniRead("igigle.ini", "settings", "slices", "2")
-$startatini = IniRead("igigle.ini", "settings", "startat", "1")
+$startatini = IniRead("igigle.ini", "settings", "startat", "0")
 $userini = IniRead("igigle.ini", "settings", "user", "Irongeek")
 $passini = IniRead("igigle.ini", "settings", "pass", "")
 $VersionString = "IG WiGLE Client 0.96"
@@ -72,6 +72,8 @@ GUICtrlSetColor($iglink, 0x008000)
 
 $status = GUICtrlCreateLabel($VersionString & @CRLF & "Choose what you want to do.", 32, 385, 150, 85)
 
+ConsoleWrite("Startet: " & $VersionString)
+
 GUISetState(@SW_SHOW)
 
 
@@ -111,12 +113,12 @@ While 1
 			$long = StringStripWS(GUICtrlRead($LongTXT), 8)
 			$slices = StringStripWS(GUICtrlRead($SlicesTXT), 8) ; e.g. 2 means we have to download 4 pieces
 			$startat = StringStripWS(GUICtrlRead($StartatTXT), 8)
-			
+
 			$var = StringStripWS(GUICtrlRead($VarTXT), 8)
 			$lastupdt = StringStripWS(GUICtrlRead($FoundDate), 8)
 			$user = StringStripWS(GUICtrlRead($UserTXT), 8)
 			$pass = StringStripWS(GUICtrlRead($PassTXT), 8)
-			
+
 			$top = $lat + $var
 			$bottom = $lat - $var
 			$left = $long - $var
@@ -125,55 +127,62 @@ While 1
 			ConsoleWrite(@CRLF & "$right: " & $right)
 			ConsoleWrite(@CRLF & "$top: " & $top)
 			ConsoleWrite(@CRLF & "$bottom: " & $bottom)
-			
+
 			$stepSize = ( $top - $bottom ) / $slices
 			ConsoleWrite(@CRLF & "stepSize: " & $stepSize)
-			
+
 			$progress = 0
 			$sleepLength = 10000
 			$sleepCycle = 500
 			$success =  True
+			$doneAnything = False
 			For $horStep = 0 To $slices - 1
 				If $success == False Then
 					ExitLoop
 				EndIf
-					
+
 				$currentLeft = $left + ( $stepSize * $horStep )
 				$currentRight = $left + ( $stepSize * ( $horStep + 1 ) )
 				For $vertStep = 0 To $slices - 1
-					
+
 					GUICtrlSetData($StartatTXT, $progress)
-					
+
 					If $startat > $progress Then
 						$progress = $progress + 1
 						ExitLoop
 					EndIf
-					
+
+					$doneAnything = True
+
 					$currentTop = $top - ( $stepSize * $vertStep )
 					$currentBottom = $top - ( $stepSize * ( $vertStep + 1 ) )
-			
+
 					$fn = $lat & "_" & $long & "_" & $horStep & "_" & $vertStep
 					If GUICtrlRead($OnlyMyPointsCHK) = 1 Then $extraprams = "&onlymine=true"
 					$qurl = "http://wigle.net/gpsopen/gps/GPSDB/confirmquery/?latrange1=" & $currentTop & "&latrange2=" & $currentBottom & "&longrange1=" & $currentRight & "&longrange2=" & $currentLeft & "&lastupdt=" & $lastupdt & "&credential_0=" & $user & "&credential_1=" & $pass & $extraprams & "&simple=true"
 					ConsoleWrite(@CRLF & $qurl)
 					$success = MakeWiGLEQuery($fn, $qurl)
-					
+
 					If $success == False Then
 						GUICtrlSetData($StartatTXT, $progress)
 						ExitLoop
 					EndIf
-					
+
 					$progress = $progress + 1
 					GUICtrlSetData($StartatTXT, $progress)
-					
+
 					If Mod($progress, $sleepCycle) = 0 Then
 						GUICtrlSetData($status, "Sleeping " & $sleepLength & " ms...")
 						Sleep ( $sleepLength )
 					EndIf
-					
+
 				Next
 			Next
-			
+
+			If $doneAnything == False Then
+				GUICtrlSetData($status, "Nothing to do! Specifiy smaller 'Start at' value. Enter 0 to start from beginning.")
+			EndIf
+
 			GUICtrlSetData($StartatTXT, $progress)
 			SaveSettings()
 #cs
@@ -209,7 +218,7 @@ Func SaveSettings()
 	IniWrite("igigle.ini", "settings", "pass", GUICtrlRead($PassTXT))
 	IniWrite("igigle.ini", "settings", "slices", GUICtrlRead($SlicesTXT))
 	IniWrite("igigle.ini", "settings", "startat", GUICtrlRead($StartatTXT))
-	
+
 
 EndFunc   ;==>SaveSettings
 
@@ -249,19 +258,21 @@ EndFunc   ;==>MakeKMLFile
 
 
 Func ValidFile($inputfilename)
+	$returnvalue = False
 	$inputfile = FileOpen($inputfilename, 0)
 	; Check if file opened for reading OK
 	If $inputfile = -1 Then
 		GUICtrlSetData($status, "Bad Input File! Check that your WiGLE user name as password is correct, and that the WiGLE web server is up.")
-		Return False
+		$returnvalue = False
 	EndIf
 	If StringLeft(FileReadLine($inputfile), 5) == "netid" Then
 		GUICtrlSetData($status, "Bad file")
-		Return True
+		$returnvalue = True
 	Else
-		Return False
+		$returnvalue = False
 	EndIf
 	FileClose($inputfile)
+	return $returnvalue
 EndFunc   ;==>ValidFile
 
 Func PrintKMLFolder($weptype, $FolderName, $inputfilename, $kmlfile)
