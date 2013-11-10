@@ -54,7 +54,10 @@ $SlicesTXT = GUICtrlCreateInput($slicesini, 60, 145, 129, 21, -1, $WS_EX_CLIENTE
 GUICtrlCreateLabel("Start at:", 16, 169, 37, 17)
 $StartatTXT = GUICtrlCreateInput($startatini, 60, 169, 129, 21, -1, $WS_EX_CLIENTEDGE)
 
-$status = GUICtrlCreateLabel("Warning! Wigle-API only allows about 30 downloads per day. After error is reported, close IG WiGLE Client and continue tomorrow.", 32, 193, 150, 85)
+$status = GUICtrlCreateLabel("Warning! Wigle-API only returns 10000 entries per download. Choose slice count wisely! " &  _
+    @CRLF & "Warning! Wigle-API only allows about 30 downloads per day (exact limitation not documented). After error is" & _
+    " reported, close IG WiGLE Client" & _
+    " and continue tomorrow.", 10, 193, 200, 85)
 
 GUICtrlCreateLabel("WiGLE User:", 0, 272, 70, 17)
 $UserTXT = GUICtrlCreateInput($userini, 63, 272, 129, 21, -1, $WS_EX_CLIENTEDGE)
