@@ -157,8 +157,6 @@ While 1
 						ContinueLoop
 					EndIf
 
-					$doneAnything = True
-
 					$currentTop = $top - ( $stepSize * $vertStep )
 					$currentBottom = $top - ( $stepSize * ( $vertStep + 1 ) )
 
@@ -168,6 +166,9 @@ While 1
 						ConsoleWrite(@CRLF & "Skipping " & $fn & ".kml because already exists")
 						ContinueLoop
 					EndIf
+
+					$doneAnything = True
+
 					If GUICtrlRead($OnlyMyPointsCHK) = 1 Then $extraprams = "&onlymine=true"
 					$qurl = "http://wigle.net/gpsopen/gps/GPSDB/confirmquery/?latrange1=" & Round($currentTop,6) & "&latrange2=" & Round($currentBottom,6) & "&longrange1=" & Round($currentRight,6) & "&longrange2=" & Round($currentLeft,6) & "&lastupdt=" & $lastupdt & "&credential_0=" & $user & "&credential_1=" & $pass & $extraprams & "&simple=true"
 					ConsoleWrite(@CRLF & $qurl)
@@ -190,7 +191,7 @@ While 1
 			Next
 
 			If $doneAnything == False Then
-				GUICtrlSetData($status, "Nothing to do! Specifiy smaller 'Start at' value. Enter 0 to start from beginning.")
+				GUICtrlSetData($status, "Nothing to do! Either already all files loaded or too large 'Start at' value specified. Enter 0 to start from beginning.")
 			EndIf
 
 			GUICtrlSetData($StartatTXT, $progress)
